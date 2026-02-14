@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNQ PnL Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #000000; color: #ffffff; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; position: relative; }
+        .card { position: relative; width: 100%; max-width: 380px; background: #0a0a0a; border: 1px solid #27272a; border-radius: 32px; padding: 32px 24px; box-shadow: 0 0 40px rgba(0,0,0,0.5); z-index: 10; margin-bottom: 20px; }
+        .glow { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0) 70%); z-index: 0; pointer-events: none; }
+        h1 { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 4px; letter-spacing: -0.5px; }
+        p.subtitle { text-align: center; color: #71717a; font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 30px; }
+        .label { font-size: 11px; font-weight: 700; color: #71717a; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; margin-left: 4px; }
+        .input-box { position: relative; margin-bottom: 20px; }
+        input { width: 100%; background: #18181b; border: 1px solid #27272a; color: #fff; font-size: 20px; font-weight: 600; padding: 16px 16px 16px 44px; border-radius: 16px; outline: none; transition: all 0.2s; }
+        input:focus { border-color: #52525b; background: #27272a; }
+        .currency-symbol { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #52525b; font-size: 20px; font-weight: 600; }
+        .toggle-container { display: flex; background: #18181b; padding: 4px; border-radius: 16px; margin-bottom: 24px; border: 1px solid #27272a; }
+        .toggle-btn { flex: 1; padding: 12px; border: none; background: transparent; color: #71717a; font-weight: 600; font-size: 13px; border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+        .toggle-btn.active { background: #27272a; color: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .pills-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 30px; }
+        .pill { background: #18181b; border: 1px solid #27272a; color: #71717a; padding: 12px 0; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+        .pill.active { background: #ffffff; color: #000000; border-color: #ffffff; transform: scale(1.05); }
+        .main-btn { width: 100%; background: #ffffff; color: #000000; border: none; padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.1s; }
+        .main-btn:active { transform: scale(0.98); opacity: 0.9; }
+        .result-area { margin-top: 24px; background: #18181b; border-radius: 20px; padding: 24px; text-align: center; border: 1px solid #27272a; display: none; animation: popIn 0.3s ease; }
+        @keyframes popIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .result-val { font-size: 36px; font-weight: 700; color: #fff; }
+        .result-label { color: #71717a; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .watermark { position: absolute; bottom: 10px; right: 15px; color: #ffffff; font-size: 12px; font-weight: 500; opacity: 0.3; pointer-events: none; font-family: 'Inter', sans-serif; letter-spacing: 0.5px; z-index: 5; }
+    </style>
+</head>
+<body>
+    <div class="glow"></div>
+    <div class="card">
+        <h1>MNQ Calculator</h1>
+        <p class="subtitle">Profit & Loss Tool</p>
+        <div class="toggle-container">
+            <button class="toggle-btn active" onclick="setMode('long')" id="btn-long">Long (Buy)</button>
+            <button class="toggle-btn" onclick="setMode('short')" id="btn-short">Short (Sell)</button>
+        </div>
+        <div class="label">Entry Price</div>
+        <div class="input-box"><div class="currency-symbol">$</div><input type="number" id="entry" placeholder="18500.00" step="0.25"></div>
+        <div class="label">Exit Price</div>
+        <div class="input-box"><div class="currency-symbol">$</div><input type="number" id="exit" placeholder="18550.00" step="0.25"></div>
+        <div class="label">Contracts (Lots)</div>
+        <div class="pills-grid" id="contract-pills">
+            <button class="pill active" onclick="setContracts(1, this)">1</button>
+            <button class="pill" onclick="setContracts(2, this)">2</button>
+            <button class="pill" onclick="setContracts(3, this)">3</button>
+            <button class="pill" onclick="setContracts(5, this)">5</button>
+            <button class="pill" onclick="setContracts(10, this)">10</button>
+        </div>
+        <button class="main-btn" onclick="calculate()">Calculate PnL</button>
+        <div class="result-area" id="result-box">
+            <div class="result-label">Total PnL</div>
+            <div class="result-val" id="pnl-text">$0.00</div>
+        </div>
+    </div>
+    <div class="watermark">@w1mayank</div>
+    <script>
+        let mode = 'long'; let contracts = 1;
+        function setMode(m) { mode = m; document.getElementById('btn-long').className = mode === 'long' ? 'toggle-btn active' : 'toggle-btn'; document.getElementById('btn-short').className = mode === 'short' ? 'toggle-btn active' : 'toggle-btn'; }
+        function setContracts(n, el) { contracts = n; document.querySelectorAll('.pill').forEach(p => p.className = 'pill'); el.className = 'pill active'; }
+        function calculate() {
+            let entry = parseFloat(document.getElementById('entry').value); let exit = parseFloat(document.getElementById('exit').value);
+            if (isNaN(entry) || isNaN(exit)) return;
+            let pnl = mode === 'long' ? (exit - entry) * contracts * 2 : (entry - exit) * contracts * 2;
+            let rb = document.getElementById('result-box'); let pt = document.getElementById('pnl-text');
+            rb.style.display = 'block';
+            let fmt = Math.abs(pnl).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            pt.innerText = (pnl >= 0 ? "+" : "-") + "$" + fmt;
+            pt.style.color = pnl >= 0 ? "#4ade80" : "#f87171";
+        }
+    </script>
+</body>
+</html>
