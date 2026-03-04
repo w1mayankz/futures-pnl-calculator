@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@w1mayank PnL Calculator</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #000000;
+            --fg: #ffffff;
+            --border: #444444;
+            --accent: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--fg);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .marquee-container {
+            width: 100%;
+            overflow: hidden;
+            background: var(--fg);
+            color: var(--bg);
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .marquee {
+            display: inline-block;
+            animation: marquee 15s linear infinite;
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+        }
+
+        header .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .calculator-wrapper {
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--border);
+            padding: 40px;
+            background-color: var(--bg);
+            box-shadow: 10px 10px 0px rgba(255, 255, 255, 0.05);
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.75rem;
+            margin-bottom: 8px;
+            color: #aaaaaa;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        input[type=number], select {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--fg);
+            padding: 12px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+            appearance: none;
+            border-radius: 0;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        input[type=number]:focus, select:focus {
+            border-color: var(--accent);
+        }
+
+        option {
+            background-color: var(--bg);
+            color: var(--fg);
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--fg);
+            color: var(--bg);
+            border: none;
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: background-color 0.2s, color 0.2s;
+            margin-top: 10px;
+            text-transform: uppercase;
+        }
+
+        button:hover, button:active {
+            background-color: #ff0000;
+            color: #ffffff;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px dashed var(--border);
+            text-align: center;
+        }
+
+        .result-label {
+            font-size: 0.75rem;
+            color: #aaaaaa;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .pnl-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-top: 10px;
+        }
+
+        .profit { color: #00ff66; }
+        .loss { color: #ff3333; }
+        .neutral { color: var(--fg); }
+
+        .spec-info {
+            font-size: 0.65rem;
+            color: #666;
+            margin-top: 20px;
+            text-align: center;
+            line-height: 1.5;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="marquee-container">
+        <div class="marquee">
+            ★ @w1mayank 2026 ★ @w1mayank 2026 ★ @w1mayank 2026 ★ @w1mayank 2026 ★ @w1mayank 2026 ★ @w1mayank 2026 ★ @w1mayank 2026 ★ @w1mayank 2026 ★ @w1mayank 2026 ★ @w1mayank 2026
+        </div>
+    </div>
+
+    <header>
+        <div class="logo">PnL Calculator</div>
+    </header>
+
+    <main>
+        <div class="calculator-wrapper">
+            
+            <div class="input-group">
+                <label for="instrument">Instrument</label>
+                <select id="instrument" onchange="updateSpecInfo()">
+                    <option value="MNQ">MNQ (Micro Nasdaq)</option>
+                    <option value="NQ">NQ (E-mini Nasdaq)</option>
+                    <option value="MES">MES (Micro S&P 500)</option>
+                    <option value="ES">ES (E-mini S&P 500)</option>
+                    <option value="MGC">MGC (Micro Gold)</option>
+                    <option value="GC">GC (Gold)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="position">Position Type</label>
+                <select id="position">
+                    <option value="long">LONG (BUY)</option>
+                    <option value="short">SHORT (SELL)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="contracts">Quantity (Contracts)</label>
+                <input type="number" id="contracts" placeholder="1" min="1" step="1" value="1">
+            </div>
+
+            <div class="input-group">
+                <label for="entry">Entry Price</label>
+                <input type="number" id="entry" placeholder="e.g. 18000.25">
+            </div>
+
+            <div class="input-group">
+                <label for="exit">Exit Price</label>
+                <input type="number" id="exit" placeholder="e.g. 18020.50">
+            </div>
+
+            <button onclick="calculatePnL()">[ CALCULATE ]</button>
+
+            <div class="result-container">
+                <div class="result-label">ESTIMATED TOTAL (USD)</div>
+                <div class="pnl-value neutral" id="result">$0.00</div>
+            </div>
+
+            <div class="spec-info" id="spec-info-text">
+                
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const instruments = {
+            MNQ: { pointValue: 2, tickSize: 0.25, name: 'MICRO E-MINI NASDAQ-100 (MNQ)' },
+            NQ: { pointValue: 20, tickSize: 0.25, name: 'E-MINI NASDAQ-100 (NQ)' },
+            MES: { pointValue: 5, tickSize: 0.25, name: 'MICRO E-MINI S&P 500 (MES)' },
+            ES: { pointValue: 50, tickSize: 0.25, name: 'E-MINI S&P 500 (ES)' },
+            MGC: { pointValue: 10, tickSize: 0.10, name: 'MICRO GOLD (MGC)' },
+            GC: { pointValue: 100, tickSize: 0.10, name: 'GOLD (GC)' }
+        };
+
+        function updateSpecInfo() {
+            const selected = document.getElementById('instrument').value;
+            const data = instruments[selected];
+            document.getElementById('spec-info-text').innerHTML = 
+                'INSTRUMENT: ' + data.name + '<br>' +
+                'POINT VALUE: $' + data.pointValue.toFixed(2) + ' | TICK SIZE: ' + data.tickSize;
+        }
+
+        function calculatePnL() {
+            const instrumentKey = document.getElementById('instrument').value;
+            const position = document.getElementById('position').value;
+            const contracts = parseFloat(document.getElementById('contracts').value);
+            const entry = parseFloat(document.getElementById('entry').value);
+            const exit = parseFloat(document.getElementById('exit').value);
+            const resultElement = document.getElementById('result');
+
+            if (isNaN(contracts) || isNaN(entry) || isNaN(exit)) {
+                resultElement.textContent = 'ERR: INVALID INPUT';
+                resultElement.className = 'pnl-value neutral';
+                return;
+            }
+
+            const multiplier = instruments[instrumentKey].pointValue;
+            let points = 0;
+
+            if (position === 'long') {
+                points = exit - entry;
+            } else {
+                points = entry - exit;
+            }
+
+            const pnl = points * contracts * multiplier;
+
+            if (pnl > 0) {
+                resultElement.textContent = '+$' + pnl.toFixed(2);
+                resultElement.className = 'pnl-value profit';
+            } else if (pnl < 0) {
+                resultElement.textContent = '-$' + Math.abs(pnl).toFixed(2);
+                resultElement.className = 'pnl-value loss';
+            } else {
+                resultElement.textContent = '$' + pnl.toFixed(2);
+                resultElement.className = 'pnl-value neutral';
+            }
+        }
+
+        window.onload = updateSpecInfo;
+    </script>
+</body>
+</html>
